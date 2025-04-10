@@ -1,8 +1,15 @@
 import React from 'react';
 
-const Cart = ({ items, onRemove, onPlaceOrder }) => {
+const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+    return items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0).toFixed(2);
+  };
+
+  // Функция за управление на количеството
+  const handleQuantityChange = (itemId, newQuantity) => {
+    // Минималното количество е 1
+    const quantity = Math.max(1, newQuantity);
+    onUpdateQuantity(itemId, quantity);
   };
 
   return (
@@ -18,10 +25,30 @@ const Cart = ({ items, onRemove, onPlaceOrder }) => {
               <div key={item.id} className="cart-item">
                 <div className="item-info">
                   <h3>{item.name}</h3>
-                 
+                  <div className="quantity-selector">
+                    <button 
+                      className="quantity-btn"
+                      onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
+                    >
+                      -
+                    </button>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={item.quantity || 1}
+                      onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                      className="quantity-input"
+                    />
+                    <button 
+                      className="quantity-btn"
+                      onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
                 <div className="item-price">
-                  {item.price.toFixed(2)} лв.
+                  {item.price.toFixed(2)} лв. × {item.quantity || 1} = {(item.price * (item.quantity || 1)).toFixed(2)} лв.
                 </div>
                 <button 
                   className="remove-button"
