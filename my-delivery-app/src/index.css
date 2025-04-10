@@ -114,10 +114,10 @@ h2 {
   justify-content: space-between;
   align-items: center;
   height: 70px; 
-  position: fixed; /* Това ще я фиксира на върха на страницата */
+  position: fixed; 
   top: 0;
   left: 0;
-  right: 0; /* Това ще осигури, че .navbar ще заема 100% от ширината */
+  right: 0; 
   z-index: 1000; 
   
 }
@@ -278,7 +278,82 @@ h2 {
   display: grid;
   grid-template-columns: repeat(3, 1fr); 
   gap: 30px;
+  
 }
+
+/* Картата на ресторанта */
+.restaurant-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.4s;
+  border: 1px solid rgba(0, 195, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(255, 0, 153, 0.2);
+}
+
+/* Стилизация на изображението */
+.restaurant-image {
+  width: 100%;
+  height: 250px; /* Височината на изображението */
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.restaurant-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Страхотно решение за запълване на контейнера */
+  transition: transform 0.3s ease-in-out;
+}
+
+/* При hover ефекта увеличаваме изображението малко */
+.restaurant-card:hover .restaurant-image img {
+  transform: scale(1.05);
+}
+
+/* Стилове за текстовете в картата на ресторанта */
+.restaurant-card h3 {
+  margin-top: 20px;
+  color: #ff0099;
+  font-size: 1.5rem;
+}
+
+.restaurant-card p {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 20px;
+}
+
+/* Стилове за бутона за гледане на менюто */
+.restaurant-card button {
+  background-image: linear-gradient(45deg, #ff0099, #8026ff);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: auto;
+  transition: all 0.3s;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.restaurant-card button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(255, 0, 153, 0.4);
+}
+
+
 
 @media (max-width: 1200px) {
   .restaurants-grid {
@@ -456,7 +531,66 @@ h2 {
   box-shadow: 0 5px 15px rgba(0, 195, 255, 0.4);
 }
 
-/* Кошница */
+/* Нови стилове за количество */
+.product-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  margin-top: auto;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(0, 195, 255, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.quantity-btn {
+  width: 30px;
+  height: 30px;
+  background-color: #f8f8f8;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.quantity-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.quantity-input {
+  width: 40px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid rgba(0, 195, 255, 0.2);
+  border-right: 1px solid rgba(0, 195, 255, 0.2);
+  background: white;
+  font-size: 1rem;
+  padding: 5px 0;
+}
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Обновен стил за бутона в product-card, за да работи с flex layout */
+.product-card .add-to-cart-btn {
+  flex: 1;
+  margin-top: 0;
+  width: auto;
+}
+
+/* Кошница */ 
 .cart-items {
   margin-bottom: 30px;
   background: white;
@@ -469,7 +603,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 25px 30px; 
+  padding: 25px 30px;
   border-bottom: 1px solid #ecfcff;
   transition: background-color 0.3s;
 }
@@ -481,14 +615,14 @@ h2 {
 .cart-item .item-info {
   flex: 1;
   color: #333;
-  font-size: 1.1rem; 
+  font-size: 1.1rem;
 }
 
 .cart-item .item-price {
   font-weight: bold;
   margin: 0 25px;
   color: #ff0099;
-  font-size: 1.2rem; 
+  font-size: 1.2rem;
 }
 
 .remove-button {
@@ -500,7 +634,7 @@ h2 {
   cursor: pointer;
   transition: all 0.3s;
   font-weight: 600;
-  font-size: 1rem; 
+  font-size: 1rem;
 }
 
 .remove-button:hover {
@@ -522,7 +656,7 @@ h2 {
 
 .cart-summary .total {
   font-weight: bold;
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
   color: #ff0099;
 }
 
@@ -533,7 +667,7 @@ h2 {
   padding: 14px 30px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 1.2rem; 
+  font-size: 1.2rem;
   font-weight: 600;
   transition: all 0.3s;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -543,6 +677,69 @@ h2 {
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(0, 255, 204, 0.3);
 }
+
+/* Стилове за контрола за количество в кошницата */
+.cart .quantity-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(0, 195, 255, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  margin-top: 5px;
+}
+
+.cart .quantity-btn {
+  width: 25px;
+  height: 25px;
+  background-color: #f8f8f8;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.cart .quantity-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.cart .quantity-input {
+  width: 35px;
+  text-align: center;
+  border: none;
+  border-left: 1px solid rgba(0, 195, 255, 0.2);
+  border-right: 1px solid rgba(0, 195, 255, 0.2);
+  background: white;
+  font-size: 0.9rem;
+  padding: 4px 0;
+}
+
+.cart .quantity-input::-webkit-inner-spin-button,
+.cart .quantity-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Обновени стилове за елементите в кошницата */
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-price {
+  margin: 0 15px;
+  white-space: nowrap;
+}
+
 
 /* История на поръчките */
 .orders-list, .orders-container {
@@ -662,6 +859,17 @@ h2 {
   margin-bottom: 25px;
   transition: all 0.3s;
   border: 1px solid rgba(0, 195, 255, 0.1);
+
+  
+}
+.products-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+
 }
 
 .restaurant-item:hover, .product-item:hover {
@@ -880,6 +1088,7 @@ h2 {
   .products-list {
     grid-template-columns: repeat(5, 1fr); /* 5 колони при много големи екрани */
   }
+  
   
   .orders-list, .orders-container {
     grid-template-columns: repeat(4, 1fr); /* 4 колони при много големи екрани */
