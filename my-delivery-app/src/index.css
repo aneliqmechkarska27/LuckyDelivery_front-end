@@ -114,6 +114,11 @@ h2 {
   justify-content: space-between;
   align-items: center;
   height: 70px; 
+  position: fixed; /* Това ще я фиксира на върха на страницата */
+  top: 0;
+  left: 0;
+  right: 0; /* Това ще осигури, че .navbar ще заема 100% от ширината */
+  z-index: 1000; 
   
 }
 

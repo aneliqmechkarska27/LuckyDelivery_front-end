@@ -20,12 +20,7 @@ const OrderHistory = ({ orders }) => {
               <p className="order-date">Дата: {order.date}</p>
               <p className="order-restaurant">Ресторант: {order.restaurant}</p>
               <div className="order-items">
-                <h4>Поръчани продукти:</h4>
-                <ul>
-                  {order.items.map((item, index) => (
-                    <li key={index}>{item}</li>
-                  ))}
-                </ul>
+                
               </div>
             </div>
           ))}

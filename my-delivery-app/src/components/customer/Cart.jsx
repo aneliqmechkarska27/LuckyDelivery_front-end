@@ -18,7 +18,7 @@ const Cart = ({ items, onRemove, onPlaceOrder }) => {
               <div key={item.id} className="cart-item">
                 <div className="item-info">
                   <h3>{item.name}</h3>
-                  <p>{item.description}</p>
+                 
                 </div>
                 <div className="item-price">
                   {item.price.toFixed(2)} лв.

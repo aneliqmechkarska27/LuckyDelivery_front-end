@@ -86,7 +86,7 @@ const RestaurantList = ({ onAddToCart }) => {
                 <div className="restaurant-info">
                   <h3>{restaurant.name}</h3>
                   <p>Кухня: {restaurant.cuisine}</p>
-                  <p>Брой продукти: {restaurant.products.length}</p>
+                  
                   <button
                     className="view-menu-btn"
                     onClick={() => setSelectedRestaurant(restaurant)}
