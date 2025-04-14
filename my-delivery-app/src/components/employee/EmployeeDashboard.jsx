@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import RestaurantManagement from './RestaurantManagement';
 import ProductManagement from './ProductManagement';
+import getAllRestaurants from '../../services/api';
 
 const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState('restaurants');
@@ -9,33 +10,34 @@ const EmployeeDashboard = () => {
 
   useEffect(() => {
     // Симулация на зареждане на данни от API
-    const mockRestaurants = [
-      {
-        id: 1,
-        name: 'Пицария "Италиано"',
-        address: 'ул. Витоша 15, София',
-        phone: '02/888-9999',
-        cuisine: 'Италианска',
-        products: [
-          { id: 1, name: 'Пица Маргарита', price: 10.99, description: 'Домати, моцарела, босилек' },
-          { id: 2, name: 'Пица Пеперони', price: 12.99, description: 'Пеперони, сирене, доматен сос' },
-          { id: 3, name: 'Лазаня', price: 14.99, description: 'Класическа италианска лазаня' }
-        ]
-      },
-      {
-        id: 2,
-        name: 'Суши Експрес',
-        address: 'бул. България 102, София',
-        phone: '02/777-8888',
-        cuisine: 'Японска',
-        products: [
-          { id: 4, name: 'Калифорния рол', price: 15.99, description: '8 хапки' },
-          { id: 5, name: 'Сашими сет', price: 18.99, description: 'Асорти от прясна риба' },
-          { id: 6, name: 'Мисо супа', price: 5.99, description: 'Традиционна японска супа' }
-        ]
-      },
-    ];
+    // const mockRestaurants = [
+    //   {
+    //     id: 1,
+    //     name: 'Пицария "Италиано"',
+    //     address: 'ул. Витоша 15, София',
+    //     phone: '02/888-9999',
+    //     cuisine: 'Италианска',
+    //     products: [
+    //       { id: 1, name: 'Пица Маргарита', price: 10.99, description: 'Домати, моцарела, босилек' },
+    //       { id: 2, name: 'Пица Пеперони', price: 12.99, description: 'Пеперони, сирене, доматен сос' },
+    //       { id: 3, name: 'Лазаня', price: 14.99, description: 'Класическа италианска лазаня' }
+    //     ]
+    //   },
+    //   {
+    //     id: 2,
+    //     name: 'Суши Експрес',
+    //     address: 'бул. България 102, София',
+    //     phone: '02/777-8888',
+    //     cuisine: 'Японска',
+    //     products: [
+    //       { id: 4, name: 'Калифорния рол', price: 15.99, description: '8 хапки' },
+    //       { id: 5, name: 'Сашими сет', price: 18.99, description: 'Асорти от прясна риба' },
+    //       { id: 6, name: 'Мисо супа', price: 5.99, description: 'Традиционна японска супа' }
+    //     ]
+    //   },
+    // ];
     
+    const restaurants = getAllRestaurants();
     setRestaurants(mockRestaurants);
   }, []);
 
