@@ -1,30 +1,32 @@
 import React from 'react';
 
 const OrderHistory = ({ orders }) => {
+  console.log("Orders received in OrderHistory:", orders);
+
   return (
     <div className="order-history">
-      <h2>История на поръчките</h2>
-      
+      <h2>Моите поръчки</h2>
       {orders.length === 0 ? (
-        <p>Нямате предишни поръчки</p>
+        <p>Няма предишни поръчки.</p>
       ) : (
-        <div className="orders-list">
+        <ul>
           {orders.map(order => (
-            <div key={order.id} className="order-card">
-              <div className="order-header">
-                <h3>Поръчка #{order.id}</h3>
-                <span className={`status ${order.status.toLowerCase()}`}>
-                  {order.status}
-                </span>
-              </div>
-              <p className="order-date">Дата: {order.date}</p>
-              <p className="order-restaurant">Ресторант: {order.restaurant}</p>
-              <div className="order-items">
-                
-              </div>
-            </div>
+            <li key={order.id} className="order-item">
+              <h3>Поръчка #{order.id}</h3>
+              {/* We'll try to display the restaurant name here */}
+              {order.restaurant && <p>Ресторант: {order.restaurant.name}</p>}
+              {!order.restaurant && <p>Ресторант: Информацията не е налична</p>}
+              <ul>
+                {/* Assuming order.items is an array of item names */}
+                {order.items && order.items.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+              <p>Статус: {order.status}</p>
+              {order.createdAt && <p>Дата: {new Date(order.createdAt).toLocaleDateString('bg-BG')}</p>}
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

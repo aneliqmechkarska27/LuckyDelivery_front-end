@@ -1,18 +1,35 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect } from "react";
 import italianoImg from "../../assets/restaurants/italiano.jpg"; // Hardcoded image for all restaurants
 
 const RestaurantList = ({ onAddToCart }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-  const [menu, setMenu] = useState([]);  // Holds the menu for the selected restaurant
+  const [menu, setMenu] = useState([]);   // Holds the menu for the selected restaurant
   const [quantities, setQuantities] = useState({});
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+  const [restaurantsError, setRestaurantsError] = useState(null);
+  const [loadingMenu, setLoadingMenu] = useState(false);
+  const [menuError, setMenuError] = useState(null);
 
   // 🔥 Fetch data from API
   useEffect(() => {
+    setLoadingRestaurants(true);
     fetch("http://localhost:9090/api/restaurants")
-      .then((res) => res.json())
-      .then((data) => setRestaurants(data))
-      .catch((err) => console.error("Error fetching restaurants:", err));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setRestaurants(data);
+        setLoadingRestaurants(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching restaurants:", err);
+        setRestaurantsError("Грешка при зареждане на ресторанти.");
+        setLoadingRestaurants(false);
+      });
   }, []);
 
   // Handle quantity changes
@@ -25,6 +42,10 @@ const RestaurantList = ({ onAddToCart }) => {
 
   // Add to cart with quantity
   const addToCartWithQuantity = (product) => {
+    if (!selectedRestaurant) {
+      alert("Моля, изберете ресторант преди да добавите продукт в кошницата.");
+      return;
+    }
     const quantity = quantities[product.id] || 1;
     onAddToCart({
       ...product,
@@ -35,45 +56,62 @@ const RestaurantList = ({ onAddToCart }) => {
 
   // Fetch the menu for the selected restaurant
   const fetchMenu = (restaurantId) => {
+    setLoadingMenu(true);
+    setMenuError(null);
     fetch(`http://localhost:9090/api/restaurants/${restaurantId}/menu`)
-      .then((res) => res.json())
-      .then((data) => setMenu(data))
-      .catch((err) => console.error("Error fetching menu:", err));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setMenu(data);
+        setLoadingMenu(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching menu:", err);
+        setMenuError("Грешка при зареждане на менюто.");
+        setLoadingMenu(false);
+      });
   };
 
   return (
     <div className="restaurant-container">
+      {loadingRestaurants && <p>Зареждане на ресторанти...</p>}
+      {restaurantsError && <p style={{ color: 'red' }}>{restaurantsError}</p>}
+
       {!selectedRestaurant ? (
         <>
           <h2>Налични ресторанти</h2>
-          <div className="restaurant-list" style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", 
+          <div className="restaurant-list" style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
             gap: "20px",
             marginTop: "20px"
           }}>
             {restaurants.map((restaurant) => (
-              <div key={restaurant.id} className="restaurant-card" style={{ 
-                border: "1px solid #ddd", 
-                borderRadius: "12px", 
-                overflow: "hidden", 
-                background: "white", 
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)", 
-                padding: "16px", 
-                transition: "transform 0.2s ease", 
-                cursor: "pointer", 
+              <div key={restaurant.id} className="restaurant-card" style={{
+                border: "1px solid #ddd",
+                borderRadius: "12px",
+                overflow: "hidden",
+                background: "white",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                padding: "16px",
+                transition: "transform 0.2s ease",
+                cursor: "pointer",
                 position: "relative"
               }}>
                 <div className="restaurant-image" style={{ height: "200px" }}>
-                  <img 
-                    src={italianoImg} 
-                    alt={restaurant.name} 
-                    style={{ 
-                      width: "100%", 
-                      height: "100%", 
-                      objectFit: "cover", 
-                      borderRadius: "8px" 
-                    }} 
+                  <img
+                    src={italianoImg}
+                    alt={restaurant.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "8px"
+                    }}
                   />
                 </div>
                 <div className="restaurant-info">
@@ -83,15 +121,15 @@ const RestaurantList = ({ onAddToCart }) => {
                     className="view-menu-btn"
                     onClick={() => {
                       setSelectedRestaurant(restaurant);
-                      fetchMenu(restaurant.id);  // Fetch the menu for the selected restaurant
+                      fetchMenu(restaurant.id);   // Fetch the menu for the selected restaurant
                     }}
-                    style={{ 
-                      marginTop: "10px", 
-                      padding: "8px 12px", 
-                      backgroundColor: "#4CAF50", 
-                      color: "white", 
-                      border: "none", 
-                      borderRadius: "6px" 
+                    style={{
+                      marginTop: "10px",
+                      padding: "8px 12px",
+                      backgroundColor: "#4CAF50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px"
                     }}
                   >
                     Виж меню
@@ -121,10 +159,10 @@ const RestaurantList = ({ onAddToCart }) => {
           </button>
 
           <div className="restaurant-details">
-            <img 
-              src={italianoImg}  // Hardcoded image
-              alt={selectedRestaurant.name} 
-              className="restaurant-header-image" 
+            <img
+              src={italianoImg}   // Hardcoded image
+              alt={selectedRestaurant.name}
+              className="restaurant-header-image"
               style={{
                 width: "100%",
                 height: "250px",
@@ -136,8 +174,11 @@ const RestaurantList = ({ onAddToCart }) => {
             <p>Кухня: {selectedRestaurant.cuisine}</p>
           </div>
 
+          {loadingMenu && <p>Зареждане на меню...</p>}
+          {menuError && <p style={{ color: 'red' }}>{menuError}</p>}
+
           <div className="products-list">
-            {menu.length > 0 ? (
+            {!loadingMenu && !menuError && menu.length > 0 ? (
               menu.map((product) => (
                 <div key={product.id} className="product-card" style={{
                   background: "white",
@@ -152,8 +193,9 @@ const RestaurantList = ({ onAddToCart }) => {
                   position: "relative",
                   overflow: "hidden"
                 }}>
-                  <img
-                    src={product.image}  // Assuming product has an image field
+                  {/* You can add a hardcoded image for products here if needed */}
+                  {/* <img
+                    src={'hardcoded-product-image.jpg'}
                     alt={product.name}
                     className="product-image"
                     style={{
@@ -162,26 +204,26 @@ const RestaurantList = ({ onAddToCart }) => {
                       objectFit: "cover",
                       borderRadius: "8px"
                     }}
-                  />
+                  /> */}
                   <h3>{product.name}</h3>
                   <p>{product.description}</p>
                   <p className="price">{product.price.toFixed(2)} лв.</p>
                   <div className="product-actions">
                     <div className="quantity-selector">
-                      <button 
+                      <button
                         className="quantity-btn"
                         onClick={() => handleQuantityChange(product.id, (quantities[product.id] || 1) - 1)}
                       >
                         -
                       </button>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         min="1"
                         value={quantities[product.id] || 1}
                         onChange={(e) => handleQuantityChange(product.id, e.target.value)}
                         className="quantity-input"
                       />
-                      <button 
+                      <button
                         className="quantity-btn"
                         onClick={() => handleQuantityChange(product.id, (quantities[product.id] || 1) + 1)}
                       >

@@ -115,15 +115,26 @@ const EmployeeDashboard = () => {
         }
     };
 
-    const handleAddProduct = async (restaurantId, newProduct) => {
-        setAddingProductLoading(true);
-        setAddingProductError(null);
-        try {
-            const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}/menu`, { // Changed to /menu
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newProduct),
-            });
+    const handleAddProduct = async (newProduct) => {
+      setAddingProductLoading(true);
+      setAddingProductError(null);
+      try {
+          // Assuming you have access to the selected restaurant's ID in a state variable,
+          // likely 'selectedRestaurant'
+          if (!selectedRestaurant || !selectedRestaurant.id) {
+              console.error("Error: No restaurant selected or restaurant ID is missing.");
+              setAddingProductError("Моля, изберете ресторант преди да добавите продукт.");
+              setAddingProductLoading(false);
+              return;
+          }
+  
+          const restaurantId = selectedRestaurant.id; // Get the ID
+  
+          const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}/menu`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newProduct),
+          });
             if (response.ok) {
                 const data = await response.json();
                 setSelectedRestaurant(prev => ({ ...prev, products: [...(prev.products || []), data] }));

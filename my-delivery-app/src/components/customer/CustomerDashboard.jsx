@@ -8,108 +8,170 @@ const CustomerDashboard = () => {
   const [cart, setCart] = useState([]);
   const [activeTab, setActiveTab] = useState('restaurants');
   const [orders, setOrders] = useState([]);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+  const [restaurantsError, setRestaurantsError] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
 
   useEffect(() => {
-    // Симулация на зареждане на данни от API
-    // В реален проект тук ще има заявка към сървъра
-    const mockRestaurants = [
-      {
-        id: 1,
-        name: 'Пицария "Италиано"',
-        cuisine: 'Италианска',
-        products: [
-          { id: 1, name: 'Пица Маргарита', price: 10.99, description: 'Домати, моцарела, босилек' },
-          { id: 2, name: 'Пица Пеперони', price: 12.99, description: 'Пеперони, сирене, доматен сос' },
-          { id: 3, name: 'Лазаня', price: 14.99, description: 'Класическа италианска лазаня' }
-        ]
-      },
-      {
-        id: 2,
-        name: 'Суши Експрес',
-        cuisine: 'Японска',
-        products: [
-          { id: 4, name: 'Калифорния рол', price: 15.99, description: '8 хапки' },
-          { id: 5, name: 'Сашими сет', price: 18.99, description: 'Асорти от прясна риба' },
-          { id: 6, name: 'Мисо супа', price: 5.99, description: 'Традиционна японска супа' }
-        ]
-      },
-    ];
-    
-    setRestaurants(mockRestaurants);
-    
-    // Примерни предишни поръчки
-    setOrders([
-      { id: 1, restaurant: 'Пицария "Италиано"', items: ['Пица Маргарита', 'Пица Пеперони'], status: 'Доставена', date: '22.03.2025' },
-      { id: 2, restaurant: 'Суши Експрес', items: ['Калифорния рол', 'Мисо супа'], status: 'В процес', date: '02.04.2025' }
-    ]);
+    // Fetch restaurants from API
+    setLoadingRestaurants(true);
+    fetch("http://localhost:9090/api/restaurants")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setRestaurants(data);
+        setLoadingRestaurants(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching restaurants:", err);
+        setRestaurantsError("Грешка при зареждане на ресторанти.");
+        setLoadingRestaurants(false);
+      });
+
+    // Fetch order history from API (requires user authentication)
+    setLoadingOrders(true);
+    fetch("http://localhost:9090/api/orders", {
+      // Include authentication headers (e.g., Authorization: Bearer token)
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setOrders(data);
+        setLoadingOrders(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
+        setOrdersError("Грешка при зареждане на поръчки.");
+        setLoadingOrders(false);
+      });
   }, []);
 
-  const addToCart = (product) => {
-    setCart([...cart, product]);
+  const addToCart = (productToAdd) => {
+    const existingItem = cart.find(item => item.id === productToAdd.id);
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.id === productToAdd.id ? { ...item, quantity: (item.quantity || 1) + (productToAdd.quantity || 1) } : item
+      ));
+    } else {
+      setCart([...cart, { ...productToAdd, quantity: productToAdd.quantity || 1 }]);
+    }
   };
 
   const removeFromCart = (productId) => {
     setCart(cart.filter(item => item.id !== productId));
   };
 
-  const placeOrder = () => {
-    if (cart.length === 0) return;
-    
-    const newOrder = {
-      id: orders.length + 1,
-      restaurant: restaurants.find(r => r.id === cart[0].restaurantId)?.name || 'Ресторант',
-      items: cart.map(item => item.name),
-      status: 'Нова',
-      date: new Date().toLocaleDateString('bg-BG')
-    };
-    
-    setOrders([...orders, newOrder]);
-    setCart([]);
-    setActiveTab('orders');
-    alert('Поръчката е създадена успешно!');
+  const updateCartItemQuantity = (itemId, newQuantity) => {
+    setCart(cart.map(item =>
+      item.id === itemId ? { ...item, quantity: Math.max(1, newQuantity) } : item
+    ));
+  };
+
+  const placeOrder = async () => {
+    if (cart.length === 0) {
+      alert('Кошницата е празна. Моля, добавете артикули преди да направите поръчка.');
+      return;
+    }
+  
+    try {
+      const orderItems = cart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        restaurantId: item.restaurantId, // Ensure restaurantId is included
+        name: item.name, // Include other necessary details
+        price: item.price,
+        // Add other relevant product details for the order
+      }));
+  
+      const response = await fetch("http://localhost:9090/api/orders", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Include authentication headers
+        },
+        body: JSON.stringify({ items: orderItems }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Грешка при създаване на поръчка: ${errorData.message || response.statusText}`);
+      }
+  
+      const newOrder = await response.json();
+      setOrders([...orders, newOrder]);
+      setCart([]);
+      setActiveTab('orders');
+      alert('Поръчката е създадена успешно!');
+  
+    } catch (error) {
+      console.error("Грешка при създаване на поръчка:", error);
+      alert(`Грешка при създаване на поръчка: ${error.message}`);
+    }
   };
 
   return (
     <div className="customer-dashboard">
       <div className="tabs">
-        <button 
+        <button
           className={activeTab === 'restaurants' ? 'active' : ''}
           onClick={() => setActiveTab('restaurants')}
         >
           Ресторанти
         </button>
-        <button 
+        <button
           className={activeTab === 'cart' ? 'active' : ''}
           onClick={() => setActiveTab('cart')}
         >
-          Кошница ({cart.length})
+          Кошница ({cart.reduce((sum, item) => sum + (item.quantity || 0), 0)})
         </button>
-        <button 
+        <button
           className={activeTab === 'orders' ? 'active' : ''}
           onClick={() => setActiveTab('orders')}
         >
           Моите поръчки
         </button>
       </div>
-      
+
       <div className="tab-content">
         {activeTab === 'restaurants' && (
-          <RestaurantList 
-            restaurants={restaurants} 
-            onAddToCart={addToCart} 
-          />
+          <>
+            {loadingRestaurants && <p>Зареждане на ресторанти...</p>}
+            {restaurantsError && <p style={{ color: 'red' }}>{restaurantsError}</p>}
+            {!loadingRestaurants && !restaurantsError && (
+              <RestaurantList
+                restaurants={restaurants}
+                onAddToCart={addToCart}
+              />
+            )}
+          </>
         )}
-        
+
         {activeTab === 'cart' && (
-          <Cart 
-            items={cart} 
-            onRemove={removeFromCart} 
-            onPlaceOrder={placeOrder} 
+          <Cart
+            items={cart}
+            onRemove={removeFromCart}
+            onPlaceOrder={placeOrder}
+            onUpdateQuantity={updateCartItemQuantity}
           />
         )}
-        
+
         {activeTab === 'orders' && (
-          <OrderHistory orders={orders} />
+          <>
+            {loadingOrders && <p>Зареждане на поръчки...</p>}
+            {ordersError && <p style={{ color: 'red' }}>{ordersError}</p>}
+            {!loadingOrders && !ordersError && (
+              <OrderHistory orders={orders} />
+            )}
+          </>
         )}
       </div>
     </div>
