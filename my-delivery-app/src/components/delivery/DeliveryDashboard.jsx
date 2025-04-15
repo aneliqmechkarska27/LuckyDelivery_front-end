@@ -3,150 +3,172 @@ import React, { useState, useEffect } from 'react';
 const DeliveryDashboard = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [orders, setOrders] = useState([]);
+  const backendBaseURL = 'http://localhost:9090/api/supplier';
+  const loggedInSupplierId = 3; // Hardcoded placeholder for now
+
+  const fetchOrders = async () => {
+    if (!loggedInSupplierId) {
+      return;
+    }
+
+    let endpoint = '';
+    if (activeTab === 'pending') {
+      endpoint = `${backendBaseURL}/available`;
+    } else if (activeTab === 'active') {
+      endpoint = `${backendBaseURL}/collected?supplierId=${loggedInSupplierId}`;
+    } else if (activeTab === 'completed') {
+      endpoint = `${backendBaseURL}/completed?supplierId=${loggedInSupplierId}`;
+    }
+
+    if (endpoint) {
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setOrders(data);
+        console.log(`Fetched ${activeTab} orders:`, data); // More specific debugging log
+      } catch (error) {
+        console.error(`Failed to fetch ${activeTab} orders:`, error);
+        setOrders([]);
+      }
+    } else {
+      setOrders([]);
+    }
+  };
 
   useEffect(() => {
-    // Симулация на зареждане на данни от API
-    const mockOrders = [
-      {
-        id: 1,
-        customerName: 'Иван Иванов',
-        address: 'ул. Граф Игнатиев 15, ап. 4, София',
-        restaurant: 'Пицария "Италиано"',
-        items: ['Пица Маргарита', 'Пица Пеперони'],
-        total: 23.98,
-        status: 'pending',
-        createdAt: '2025-04-03T10:30:00'
-      },
-      {
-        id: 2,
-        customerName: 'Мария Петрова',
-        address: 'бул. Витоша 122, ет. 5, София',
-        restaurant: 'Суши Експрес',
-        items: ['Калифорния рол', 'Мисо супа'],
-        total: 21.98,
-        status: 'active',
-        createdAt: '2025-04-03T09:45:00'
-      },
-      {
-        id: 3,
-        customerName: 'Георги Димитров',
-        address: 'ул. Патриарх Евтимий 8, блок 2, София',
-        restaurant: 'Пицария "Италиано"',
-        items: ['Лазаня', 'Тирамису'],
-        total: 19.98,
-        status: 'completed',
-        createdAt: '2025-04-02T18:20:00'
-      },
-      {
-        id: 4,
-        customerName: 'Петър Стоянов',
-        address: 'бул. Черни връх 55, ет. 3, София',
-        restaurant: 'Суши Експрес',
-        items: ['Сашими сет', 'Мисо супа', 'Едамаме'],
-        total: 29.97,
-        status: 'pending',
-        createdAt: '2025-04-03T11:15:00'
-      }
-    ];
-    
-    setOrders(mockOrders);
-  }, []);
+    fetchOrders();
+  }, [activeTab, loggedInSupplierId]);
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(
-      orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const claimOrder = async (orderId) => {
+    if (!loggedInSupplierId) {
+      console.error("Supplier ID not available to claim order.");
+      return;
+    }
+    const endpoint = `${backendBaseURL}/claim/${orderId}?supplierId=${loggedInSupplierId}`;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to claim order: ${response.status} - ${errorData}`);
+      }
+      fetchOrders(); // Refresh orders after claiming
+    } catch (error) {
+      console.error("Could not claim order:", error);
+      // Optionally display an error message to the user
+    }
+  };
+
+  const markAsDelivered = async (orderId) => {
+    const endpoint = `${backendBaseURL}/deliver/${orderId}`;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to mark as delivered: ${response.status} - ${errorData}`);
+      }
+      fetchOrders(); // Refresh orders after delivery
+    } catch (error) {
+      console.error("Could not mark as delivered:", error);
+      // Optionally display an error message to the user
+    }
   };
 
   const formatTime = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const filteredOrders = orders.filter(order => {
-    if (activeTab === 'pending') return order.status === 'pending';
-    if (activeTab === 'active') return order.status === 'active';
-    if (activeTab === 'completed') return order.status === 'completed';
-    return true;
-  });
-
   return (
     <div className="delivery-dashboard">
       <h2>Управление на доставки</h2>
-      
+
       <div className="tabs">
-        <button 
+        <button
           className={activeTab === 'pending' ? 'active' : ''}
           onClick={() => setActiveTab('pending')}
         >
           Чакащи доставки
         </button>
-        <button 
+        <button
           className={activeTab === 'active' ? 'active' : ''}
           onClick={() => setActiveTab('active')}
         >
           Активни доставки
         </button>
-        <button 
+        <button
           className={activeTab === 'completed' ? 'active' : ''}
           onClick={() => setActiveTab('completed')}
         >
           Завършени доставки
         </button>
       </div>
-      
+
       <div className="orders-container">
-        {filteredOrders.length === 0 ? (
+        {orders.length === 0 ? ( // Use 'orders' directly as it's already filtered by the backend
           <p>Няма {activeTab === 'pending' ? 'чакащи' : activeTab === 'active' ? 'активни' : 'завършени'} доставки</p>
         ) : (
-          filteredOrders.map(order => (
+          orders.map(order => (
             <div key={order.id} className={`order-card ${order.status}`}>
               <div className="order-header">
                 <h3>Поръчка #{order.id}</h3>
-                <span className="time">{formatTime(order.createdAt)}</span>
+                {order.createdAt && <span className="time">{formatTime(order.createdAt)}</span>}
               </div>
-              
+
               <div className="customer-info">
-                <p><strong>Клиент:</strong> {order.customerName}</p>
-                <p><strong>Адрес:</strong> {order.address}</p>
-                <p><strong>Ресторант:</strong> {order.restaurant}</p>
+                {order.user?.name && <p><strong>Клиент:</strong> {order.user.name}</p>}
+                {order.deliveryAddress && <p><strong>Адрес:</strong> {order.deliveryAddress}</p>}
+                {order.restaurant?.name && <p><strong>Ресторант:</strong> {order.restaurant.name}</p>}
               </div>
-              
-              <div className="order-items">
-                <h4>Поръчани продукти:</h4>
-                <ul>
-                  {order.items.map((item, index) => (
-                    <li key={index}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              
+
+              {order.items && order.items.length > 0 && (
+                <div className="order-items">
+                  <h4>Поръчани продукти:</h4>
+                  <ul>
+                    {order.items.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="order-footer">
-                <p className="total">Обща сума: {order.total.toFixed(2)} лв.</p>
-                
+                {order.totalPrice !== undefined && <p className="total">Обща сума: {order.totalPrice.toFixed(2)} лв.</p>}
+
                 <div className="action-buttons">
-                  {order.status === 'pending' && (
-                    <button 
+                  {activeTab === 'pending' && (
+                    <button
                       className="accept-button"
-                      onClick={() => updateOrderStatus(order.id, 'active')}
+                      onClick={() => claimOrder(order.id)}
                     >
                       Приеми доставката
                     </button>
                   )}
-                  
-                  {order.status === 'active' && (
-                    <button 
+
+                  {activeTab === 'active' && (
+                    <button
                       className="complete-button"
-                      onClick={() => updateOrderStatus(order.id, 'completed')}
+                      onClick={() => markAsDelivered(order.id)}
                     >
                       Завърши доставката
                     </button>
                   )}
-                  
-                  {order.status === 'completed' && (
+
+                  {order.status === 'DELIVERED' && (
                     <span className="status-badge">Завършена</span>
+                  )}
+                  {order.status === 'IN_TRANSIT' && activeTab === 'active' && (
+                    <span className="status-badge">Активна</span>
+                  )}
+                  {order.status === 'PENDING' && activeTab === 'pending' && (
+                    <span className="status-badge">Чакаща</span>
                   )}
                 </div>
               </div>

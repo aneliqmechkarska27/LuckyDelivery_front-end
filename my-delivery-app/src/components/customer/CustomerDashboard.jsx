@@ -12,6 +12,7 @@ const CustomerDashboard = () => {
   const [restaurantsError, setRestaurantsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
+  const userId = 1; // TEMPORARY - Replace with actual user ID retrieval
 
   useEffect(() => {
     // Fetch restaurants from API
@@ -35,9 +36,7 @@ const CustomerDashboard = () => {
 
     // Fetch order history from API (requires user authentication)
     setLoadingOrders(true);
-    fetch("http://localhost:9090/api/orders", {
-      // Include authentication headers (e.g., Authorization: Bearer token)
-    })
+    fetch(`http://localhost:9090/api/orders/user/${userId}`) // ADDED: Fetch orders for the specific user
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -53,7 +52,7 @@ const CustomerDashboard = () => {
         setOrdersError("Грешка при зареждане на поръчки.");
         setLoadingOrders(false);
       });
-  }, []);
+  }, [userId]); // ADDED: Re-fetch orders if userId changes
 
   const addToCart = (productToAdd) => {
     const existingItem = cart.find(item => item.id === productToAdd.id);
@@ -81,7 +80,7 @@ const CustomerDashboard = () => {
       alert('Кошницата е празна. Моля, добавете артикули преди да направите поръчка.');
       return;
     }
-  
+
     try {
       const orderItems = cart.map(item => ({
         productId: item.id,
@@ -91,27 +90,34 @@ const CustomerDashboard = () => {
         price: item.price,
         // Add other relevant product details for the order
       }));
-  
+
       const response = await fetch("http://localhost:9090/api/orders", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           // Include authentication headers
         },
-        body: JSON.stringify({ items: orderItems }),
+        body: JSON.stringify({
+          user: { id: userId }, // ADDED: Include user ID in the order
+          restaurant: { id: cart.length > 0 ? cart[0].restaurantId : null }, // ADDED: Include restaurant ID
+          totalPrice: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2), // ADDED: Calculate total price
+          paymentMethod: "CASH", // ADDED: Set a default payment method
+          deliveryAddress: "Временно въведен адрес", // ADDED: Temporary delivery address
+          // items: orderItems, // REMOVED: We are sending the order details directly now
+        }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`Грешка при създаване на поръчка: ${errorData.message || response.statusText}`);
       }
-  
+
       const newOrder = await response.json();
       setOrders([...orders, newOrder]);
       setCart([]);
       setActiveTab('orders');
       alert('Поръчката е създадена успешно!');
-  
+
     } catch (error) {
       console.error("Грешка при създаване на поръчка:", error);
       alert(`Грешка при създаване на поръчка: ${error.message}`);

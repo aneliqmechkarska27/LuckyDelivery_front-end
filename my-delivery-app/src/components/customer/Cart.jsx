@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
   const [deliveryAddress, setDeliveryAddress] = useState("Временно въведен адрес"); // Temporary state
+  const [paymentMethod, setPaymentMethod] = useState("cash"); // Default payment method
 
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0).toFixed(2);
@@ -48,14 +49,16 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
   };
 
   const handlePlaceOrder = () => {
-    // TEMPORARY BYPASS FOR USER ID - REPLACE WITH ACTUAL USER RETRIEVAL LATER 
-    const userId = 1; // Replace with the actual logged-in user ID when available 
-    const restaurantId = items.length > 0 ? items[0].restaurantId : null; 
-    const totalPrice = parseFloat(calculateTotal()); 
-    const paymentMethod = "COD"; // Default payment method 
-    if (!userId || !restaurantId || items.length === 0 || !deliveryAddress) 
-      { alert("Моля, уверете се, че сте въвели адрес за доставка и има артикули в кошницата."); return; }
-  
+    // TEMPORARY BYPASS FOR USER ID - REPLACE WITH ACTUAL USER RETRIEVAL LATER
+    const userId = 1; // Replace with the actual logged-in user ID when available
+    const restaurantId = items.length > 0 ? items[0].restaurantId : null;
+    const totalPrice = parseFloat(calculateTotal());
+    // const paymentMethod = "CASH"; // Removed hardcoded payment method
+    if (!userId || !restaurantId || items.length === 0 || !deliveryAddress || !paymentMethod) {
+      alert("Моля, уверете се, че сте въвели адрес за доставка, има артикули в кошницата и сте избрали метод на плащане.");
+      return;
+    }
+
     fetch('http://localhost:9090/api/orders', {
       method: 'POST',
       headers: {
@@ -66,23 +69,23 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
         user: { id: userId },
         restaurant: { id: restaurantId },
         totalPrice: totalPrice,
-        paymentMethod: paymentMethod,
+        paymentMethod: paymentMethod.toUpperCase(), // Send payment method in uppercase to match enum
         deliveryAddress: deliveryAddress,
         // We are NOT including orderItems in the Order object now
       }),
     })
-    .then(response => {
-      if (response.ok) {
-        onPlaceOrder(); // Notify parent to clear cart
-        alert('Поръчката е създадена успешно!');
-      } else {
-        console.error('Failed to place order on the server');
-        return response.text().then(text => console.error('Order placement error body:', text));
-      }
-    })
-    .catch(error => {
-      console.error('Error placing order:', error);
-    });
+      .then(response => {
+        if (response.ok) {
+          onPlaceOrder(); // Notify parent to clear cart
+          alert('Поръчката е създадена успешно!');
+        } else {
+          console.error('Failed to place order on the server');
+          return response.text().then(text => console.error('Order placement error body:', text));
+        }
+      })
+      .catch(error => {
+        console.error('Error placing order:', error);
+      });
   };
 
   return (
@@ -147,6 +150,19 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
               />
+            </div>
+            {/* Payment Method Dropdown */}
+            <div>
+              <label htmlFor="paymentMethod">Метод на плащане:</label>
+              <select
+                id="paymentMethod"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <option value="cash">Наложен платеж</option>
+                <option value="card">Кредитна/Дебитна карта</option>
+                <option value="paypal">PayPal</option>
+              </select>
             </div>
             <button
               className="order-button"
