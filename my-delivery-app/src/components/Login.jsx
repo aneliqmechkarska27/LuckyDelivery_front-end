@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginType, setLoginType] = useState('customer');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // В реалния проект тук би имало проверка за автентикация
     if (username && password) {
       onLogin(loginType);
     }
@@ -45,8 +46,12 @@ const Login = ({ onLogin }) => {
         </div>
         <button type="submit" className="btn-login">Вход</button>
       </form>
+      <button onClick={() => navigate('/register')} className="btn-login" style={{ marginTop: '10px' }}>
+        Регистрация
+      </button>
     </div>
   );
 };
 
 export default Login;
+
