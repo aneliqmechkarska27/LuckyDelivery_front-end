@@ -8,6 +8,7 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
   // Функция за управление на количеството
   const handleQuantityChange = (itemId, newQuantity) => {
     // Минималното количество е 1
+    console.log("here");
     const quantity = Math.max(1, newQuantity);
     onUpdateQuantity(itemId, quantity);
   };
