@@ -7,11 +7,19 @@ const Navbar = ({ isLoggedIn, userType, onLogout }) => {
       <div className="logo">
         <Link to="/">LuckyDelivery</Link>
       </div>
+      
+      <div className="contact-info">
+        <a href="tel:+359888123456" className="contact-item">
+          <i className="fas fa-phone"></i> +359 888 123 456
+        </a>
+        <a href="mailto:info@luckydelivery.com" className="contact-item">
+          <i className="fas fa-envelope"></i> info@luckydelivery.com
+        </a>
+      </div>
+      
       {isLoggedIn && (
         <div className="nav-links">
-          {userType === 'customer' && <Link to="/customer">Моите поръчки</Link>}
-          {userType === 'employee' && <Link to="/employee">Управление на ресторанти</Link>}
-          {userType === 'delivery' && <Link to="/delivery">Активни доставки</Link>}
+      
           <button onClick={onLogout} className="btn-logout">Изход</button>
         </div>
       )}
