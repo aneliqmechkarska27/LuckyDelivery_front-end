@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 
 // Страници и компоненти
-import HomePage from './components/Homepage';
+import Homepage from './components/Homepage';
 import Login from './components/Login';
+import Register from './components/Register'; // нов компонент
 import CustomerDashboard from './components/customer/CustomerDashboard';
 import RestaurantList from './components/customer/RestaurantList';
 import OrderHistory from './components/customer/OrderHistory';
@@ -32,10 +33,10 @@ function App() {
         <Navbar isLoggedIn={isLoggedIn} userType={userType} onLogout={handleLogout} />
         <div className="content">
           <Routes>
-            {/* Начална страница - достъпна за всички */}
-            <Route path="/" element={<HomePage />} />
-            
-            {/* Страница за вход */}
+            {/* Начална страница */}
+            <Route path="/" element={<Homepage />} />
+
+            {/* Вход */}
             <Route 
               path="/login" 
               element={!isLoggedIn ? <Login onLogin={handleLogin} /> : 
@@ -46,8 +47,11 @@ function App() {
                 } />
               } 
             />
-            
-            {/* Маршрути за клиенти */}
+
+            {/* Регистрация */}
+            <Route path="/register" element={<Register />} />
+
+            {/* Клиент */}
             <Route 
               path="/customer/dashboard" 
               element={isLoggedIn && userType === 'customer' ? <CustomerDashboard /> : <Navigate to="/login" />} 
@@ -60,18 +64,20 @@ function App() {
               path="/customer/orders" 
               element={isLoggedIn && userType === 'customer' ? <OrderHistory /> : <Navigate to="/login" />} 
             />
-            
-            {/* Маршрути за служители и доставчици */}
+
+            {/* Служител */}
             <Route 
               path="/employee" 
               element={isLoggedIn && userType === 'employee' ? <EmployeeDashboard /> : <Navigate to="/login" />} 
             />
+
+            {/* Доставчик */}
             <Route 
               path="/delivery" 
               element={isLoggedIn && userType === 'delivery' ? <DeliveryDashboard /> : <Navigate to="/login" />} 
             />
-            
-            {/* Пренасочване към началната страница за невалиден URL */}
+
+            {/* Пренасочване при невалиден URL */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
