@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const DeliveryDashboard = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('active'); // Set default tab to 'active'
   const [orders, setOrders] = useState([]);
   const backendBaseURL = 'http://localhost:9090/api/supplier';
   const loggedInSupplierId = 3; // Hardcoded placeholder for now
