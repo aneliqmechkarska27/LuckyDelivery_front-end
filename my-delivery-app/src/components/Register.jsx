@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -18,6 +20,9 @@ const Register = () => {
     e.preventDefault();
     // Тук може да се добави логика за регистрация чрез API
     console.log('Регистрация:', formData);
+    
+    // След успешна регистрация, пренасочване към страницата за вход
+    navigate('/login');
   };
 
   return (
