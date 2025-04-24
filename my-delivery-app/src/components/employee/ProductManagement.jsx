@@ -31,15 +31,16 @@ const ProductManagement = ({
             ...currentProduct,
             price: parseFloat(currentProduct.price)
         };
-
+        console.log('Submitting product data:', productData); // Add this line
+    
         if (isEditing) {
-            onUpdateProduct(productData);
+            onUpdateProduct(restaurant.id, productData); // Ensure you are passing restaurant.id
             setIsEditing(false);
         } else {
-            onAddProduct(productData);
+            onAddProduct(restaurant.id, productData); // Ensure you are passing restaurant.id
             setIsAdding(false);
         }
-
+    
         setCurrentProduct({ id: null, name: '', price: '', description: '' });
     };
 
@@ -56,6 +57,7 @@ const ProductManagement = ({
     };
 
     const confirmDelete = (productId) => {
+        onDeleteProduct(restaurant.id, productId);
         setDeleteConfirmationId(productId);
     };
 

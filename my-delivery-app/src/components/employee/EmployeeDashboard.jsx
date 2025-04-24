@@ -23,12 +23,20 @@ const EmployeeDashboard = () => {
     const [deletingProductLoading, setDeletingProductLoading] = useState(false);
     const [deletingProductError, setDeletingProductError] = useState(null);
 
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } : { 'Content-Type': 'application/json' };
+    };
+
     useEffect(() => {
         const fetchRestaurants = async () => {
             setLoadingRestaurants(true);
             setRestaurantsError(null);
             try {
-                const response = await fetch('http://localhost:9090/api/admin/restaurants');
+                const response = await fetch('http://localhost:9090/api/admin/restaurants', {
+                    headers: getAuthHeaders(), // Headers are part of the configuration object
+                });
+    
                 if (!response.ok) {
                     const message = `HTTP error! status: ${response.status}`;
                     throw new Error(message);
@@ -41,7 +49,7 @@ const EmployeeDashboard = () => {
                 setLoadingRestaurants(false);
             }
         };
-
+    
         fetchRestaurants();
     }, []);
 
@@ -49,11 +57,11 @@ const EmployeeDashboard = () => {
         setAddingRestaurantLoading(true);
         setAddingRestaurantError(null);
         try {
-            const response = await fetch('http://localhost:9090/api/admin/restaurants', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...newRestaurant, employee: { id: 1 } }),
-            });
+        const response = await fetch('http://localhost:9090/api/admin/restaurants', {
+        method: 'POST',
+        headers: getAuthHeaders(), // Use the function to get headers
+        body: JSON.stringify({ ...newRestaurant, employee: { id: 1 } }),
+        });
             if (response.ok) {
                 const data = await response.json();
                 setRestaurants([...restaurants, data]);
@@ -72,11 +80,11 @@ const EmployeeDashboard = () => {
         setUpdatingRestaurantLoading(true);
         setUpdatingRestaurantError(null);
         try {
-            const response = await fetch(`http://localhost:9090/api/admin/restaurants/${updatedRestaurant.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedRestaurant),
-            });
+        const response = await fetch(`http://localhost:9090/api/admin/restaurants/${updatedRestaurant.id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(), // Use the function to get headers
+        body: JSON.stringify(updatedRestaurant),
+        });
             if (response.ok) {
                 const data = await response.json();
                 setRestaurants(restaurants.map(r => (r.id === updatedRestaurant.id ? data : r)));
@@ -97,6 +105,7 @@ const EmployeeDashboard = () => {
         try {
             const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}`, {
                 method: 'DELETE',
+                headers: getAuthHeaders(),
             });
             if (response.ok) {
                 setRestaurants(restaurants.filter(r => r.id !== restaurantId));
@@ -131,10 +140,10 @@ const EmployeeDashboard = () => {
           const restaurantId = selectedRestaurant.id; // Get the ID
   
           const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}/menu`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(newProduct),
-          });
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(newProduct),
+            });
             if (response.ok) {
                 const data = await response.json();
                 setSelectedRestaurant(prev => ({ ...prev, products: [...(prev.products || []), data] }));
@@ -153,14 +162,18 @@ const EmployeeDashboard = () => {
     };
 
     const handleUpdateProduct = async (restaurantId, updatedProduct) => {
+        console.log('handleUpdateProduct called with:', restaurantId, updatedProduct); // Add this line
         setUpdatingProductLoading(true);
         setUpdatingProductError(null);
         try {
-            const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}/menu/${updatedProduct.id}`, { // Changed to /menu
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedProduct),
-            });
+            const response = await fetch(
+                `http://localhost:9090/api/admin/restaurants/${restaurantId}/menu/${updatedProduct.id}`,
+                {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(updatedProduct),
+                }
+            );
             if (response.ok) {
                 const data = await response.json();
                 setSelectedRestaurant(prev => ({
@@ -190,6 +203,7 @@ const EmployeeDashboard = () => {
         try {
             const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurantId}/menu/${productId}`, { // Changed to /menu
                 method: 'DELETE',
+                headers: getAuthHeaders(),
             });
             if (response.ok) {
                 setSelectedRestaurant(prev => ({
@@ -216,7 +230,10 @@ const EmployeeDashboard = () => {
         setProductsError(null);
         setActiveTab('products');
         try {
-            const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurant.id}/menu`); // Changed to /menu
+            const response = await fetch(`http://localhost:9090/api/admin/restaurants/${restaurant.id}/menu`, {
+                headers: getAuthHeaders(), // Headers are part of the configuration object
+            });
+    
             if (response.ok) {
                 const data = await response.json();
                 setSelectedRestaurant({ ...restaurant, products: data });

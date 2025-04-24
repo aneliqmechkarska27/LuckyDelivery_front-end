@@ -31,9 +31,13 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
   };
 
   const handleRemoveItem = (itemId) => {
+    const token = localStorage.getItem('token'); // Retrieve the token
     fetch(`http://localhost:9090/api/cart/delete/${itemId}`, {
       method: 'DELETE',
-      // Include authentication headers if needed
+      headers: {
+        'Authorization': `Bearer ${token}`, // Include the JWT
+        'Content-Type': 'application/json',
+    },
     })
       .then(response => {
         if (response.ok) {
@@ -50,43 +54,50 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
 
   const handlePlaceOrder = () => {
     // TEMPORARY BYPASS FOR USER ID - REPLACE WITH ACTUAL USER RETRIEVAL LATER
-    const userId = 1; // Replace with the actual logged-in user ID when available
-    const restaurantId = items.length > 0 ? items[0].restaurantId : null;
-    const totalPrice = parseFloat(calculateTotal());
-    // const paymentMethod = "CASH"; // Removed hardcoded payment method
-    if (!userId || !restaurantId || items.length === 0 || !deliveryAddress || !paymentMethod) {
-      alert("Моля, уверете се, че сте въвели адрес за доставка, има артикули в кошницата и сте избрали метод на плащане.");
-      return;
-    }
-
+     // const userId = 1; // No longer needed as the backend handles authentication via JWT
+     const restaurantId = items.length > 0 ? items[0].restaurantId : null;
+     const totalPrice = parseFloat(calculateTotal());
+     // const paymentMethod = "CASH"; // Removed hardcoded payment method
+     const token = localStorage.getItem('token'); // Retrieve the token
+    
+     if (!token) {
+     alert("Моля, влезте в акаунта си, за да направите поръчка.");
+     return;
+     }
+    
+     if (!restaurantId || items.length === 0 || !deliveryAddress || !paymentMethod) {
+     alert("Моля, уверете се, че сте въвели адрес за доставка, има артикули в кошницата и сте избрали метод на плащане.");
+     return;
+     }
+    
     fetch('http://localhost:9090/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Include authentication headers if needed later
-      },
-      body: JSON.stringify({
-        user: { id: userId },
-        restaurant: { id: restaurantId },
-        totalPrice: totalPrice,
-        paymentMethod: paymentMethod.toUpperCase(), // Send payment method in uppercase to match enum
-        deliveryAddress: deliveryAddress,
-        // We are NOT including orderItems in the Order object now
-      }),
+     method: 'POST',
+     headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${token}`, // Include the JWT here
+     },
+     body: JSON.stringify({
+     // We no longer need to send the userId explicitly, it's in the JWT
+     restaurant: { id: restaurantId },
+     totalPrice: totalPrice,
+     paymentMethod: paymentMethod.toUpperCase(), // Send payment method in uppercase to match enum
+     deliveryAddress: deliveryAddress,
+     // We are NOT including orderItems in the Order object now
+     }),
+     })
+     .then(response => {
+     if (response.ok) {
+     onPlaceOrder(); // Notify parent to clear cart
+     alert('Поръчката е създадена успешно!');
+     } else {
+    console.error('Failed to place order on the server');
+    return response.text().then(text => console.error('Order placement error body:', text));
+    }
     })
-      .then(response => {
-        if (response.ok) {
-          onPlaceOrder(); // Notify parent to clear cart
-          alert('Поръчката е създадена успешно!');
-        } else {
-          console.error('Failed to place order on the server');
-          return response.text().then(text => console.error('Order placement error body:', text));
-        }
-      })
-      .catch(error => {
-        console.error('Error placing order:', error);
-      });
-  };
+    .catch(error => {
+    console.error('Error placing order:', error);
+    });
+    };
 
   return (
     <div className="cart">
@@ -97,44 +108,47 @@ const Cart = ({ items, onRemove, onPlaceOrder, onUpdateQuantity }) => {
       ) : (
         <>
           <div className="cart-items">
-            {items.map(item => (
-              <div key={item.id} className="cart-item">
-                <div className="item-info">
-                  <h3>{item.name}</h3>
-                  <div className="quantity-selector">
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity || 1}
-                      onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
-                      className="quantity-input"
-                    />
-                    <button
-                      className="quantity-btn"
-                      onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                <div className="item-price">
-                  {item.price && item.quantity && `${item.price.toFixed(2)} лв. × ${item.quantity} = ${(item.price * item.quantity).toFixed(2)} лв.`}
-                </div>
-                <button
-                  className="remove-button"
-                  onClick={() => handleRemoveItem(item.id)}
-                >
-                  Премахни
-                </button>
-              </div>
-            ))}
-          </div>
+                {items.map(item => {
+                  console.log("Cart Item ID (Frontend):", item.id); // <--- HERE
+                  return (
+                    <div key={item.id} className="cart-item">
+                      <div className="item-info">
+                        <h3>{item.name}</h3>
+                        <div className="quantity-selector">
+                          <button
+                            className="quantity-btn"
+                            onClick={() => handleQuantityChange(item.id, (item.quantity || 1) - 1)}
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity || 1}
+                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                            className="quantity-input"
+                          />
+                          <button
+                            className="quantity-btn"
+                            onClick={() => handleQuantityChange(item.id, (item.quantity || 1) + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <div className="item-price">
+                        {item.price && item.quantity && `${item.price.toFixed(2)} лв. × ${item.quantity} = ${(item.price * item.quantity).toFixed(2)} лв.`}
+                      </div>
+                      <button
+                        className="remove-button"
+                        onClick={() => handleRemoveItem(item.id)}
+                      >
+                        Премахни
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
 
           <div className="cart-summary">
             <div className="total">
