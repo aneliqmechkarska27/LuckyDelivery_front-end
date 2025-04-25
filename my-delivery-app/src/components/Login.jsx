@@ -19,28 +19,24 @@ const Login = ({ onLogin }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        username: username,
-                        password: password,
-                    }),
+                    body: JSON.stringify({ username, password }),
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.token) {
                     localStorage.setItem('authToken', data.token);
+                    console.log('New JWT received:', data.token);
 
                     let decodedToken;
                     let extractedUserType = null;
-                    let userId = null; // Declare userId here
+                    let userId = null;
                     try {
                         decodedToken = jwtDecode(data.token);
                         console.log('Decoded Token:', decodedToken);
-
-                        // Assuming userId is in the 'sub' claim of the token
                         userId = decodedToken.sub;
                         if (userId) {
-                            localStorage.setItem('userId', userId); // Store userId
+                            localStorage.setItem('userId', userId);
                         } else {
                             console.warn('User ID not found in the token.');
                         }
@@ -51,7 +47,7 @@ const Login = ({ onLogin }) => {
                             else if (role === 'ROLE_EMPLOYEE') extractedUserType = 'employee';
                             else if (role === 'ROLE_SUPPLIER') extractedUserType = 'delivery';
                         }
-                        console.log('Extracted User Type:', extractedUserType);
+                        
 
                         if (onLogin && extractedUserType) {
                             onLogin(extractedUserType);

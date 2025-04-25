@@ -5,6 +5,7 @@ import './App.css';
 // Страници и компоненти
 import HomePage from './components/Homepage';
 import Login from './components/Login';
+import Register from './components/Register';
 import CustomerDashboard from './components/customer/CustomerDashboard';
 import RestaurantList from './components/customer/RestaurantList';
 import OrderHistory from './components/customer/OrderHistory';
@@ -46,7 +47,7 @@ function App() {
                 } />
               } 
             />
-            
+            <Route path="/register" element={<Register />} /> 
             {/* Маршрути за клиенти */}
             <Route 
               path="/customer/dashboard" 

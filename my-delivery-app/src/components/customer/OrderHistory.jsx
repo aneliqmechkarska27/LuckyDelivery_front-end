@@ -1,6 +1,45 @@
 import React from 'react';
 
 const OrderHistory = ({ orders }) => {
+  const getDisplayedStatus = (status) => {
+    if (status === 'IN_TRANSIT') {
+      return 'ACCEPTED';
+    }
+    return status;
+  };
+
+  const getStatusColor = (status) => {
+    const displayedStatus = getDisplayedStatus(status);
+    switch (displayedStatus) {
+      case 'PENDING':
+        return 'orange';
+      case 'ACCEPTED':
+        return 'green';
+      case 'DELIVERED':
+        return 'darkgreen';
+      case 'CANCELED':
+        return 'red';
+      default:
+        return '#000';
+    }
+  };
+
+  const getStatusBackgroundColor = (status) => {
+    const displayedStatus = getDisplayedStatus(status);
+    switch (displayedStatus) {
+      case 'PENDING':
+        return 'rgba(255, 165, 0, 0.2)'; // Light orange
+      case 'ACCEPTED':
+        return 'rgba(0, 128, 0, 0.2)';   // Light green
+      case 'DELIVERED':
+        return 'rgba(0, 100, 0, 0.2)';   // Darker light green
+      case 'CANCELED':
+        return 'rgba(255, 0, 0, 0.2)';   // Light red
+      default:
+        return 'transparent';
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h2 style={{ marginBottom: '20px', color: '#333' }}>История на поръчките</h2>
@@ -25,21 +64,13 @@ const OrderHistory = ({ orders }) => {
                 <span
                   style={{
                     fontWeight: 'bold',
-                    color: order.status === 'PENDING' ? 'orange' :
-                      order.status === 'ACCEPTED' ? 'green' :
-                      order.status === 'IN TRANSIT' ? 'blue' :
-                      order.status === 'DELIVERED' ? 'darkgreen' :
-                      order.status === 'CANCELED' ? 'red' : '#000', // Default color
+                    color: getStatusColor(order.status),
                     padding: '5px 10px',
                     borderRadius: '5px',
-                    backgroundColor: order.status === 'PENDING' ? 'rgba(255, 165, 0, 0.2)' : // Light orange
-                      order.status === 'ACCEPTED' ? 'rgba(0, 128, 0, 0.2)' :       // Light green
-                      order.status === 'IN TRANSIT' ? 'rgba(0, 0, 255, 0.2)' :         // Light blue
-                      order.status === 'DELIVERED' ? 'rgba(0, 100, 0, 0.2)' :     // Darker light green
-                      order.status === 'CANCELED' ? 'rgba(255, 0, 0, 0.2)' :         'transparent',
+                    backgroundColor: getStatusBackgroundColor(order.status),
                   }}
                 >
-                  {order.status}
+                  {getDisplayedStatus(order.status)}
                 </span>
               </div>
               <p style={{ color: '#888', fontSize: '0.9em', marginBottom: '5px' }}>
